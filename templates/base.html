@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Criador de Chatbots{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui'],
+            body: ['"Inter"', 'ui-sans-serif', 'system-ui']
+          },
+          colors: {
+            midnight: '#0f172a',
+            aurora: '#22d3ee',
+            peach: '#fb7185'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-midnight via-slate-900 to-slate-950 text-slate-100 font-body">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute -top-24 -right-16 w-72 h-72 bg-aurora/20 blur-3xl rounded-full"></div>
+    <div class="absolute -bottom-20 -left-10 w-80 h-80 bg-peach/20 blur-3xl rounded-full"></div>
+  </div>
+
+  <main class="relative z-10">
+    <header class="px-6 pt-6 pb-4">
+      <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <p class="text-sm uppercase tracking-[0.3em] text-aurora font-semibold">Studio de Bots</p>
+          <h1 class="mt-1 text-4xl md:text-5xl font-display font-semibold">Chatbots · Mensagens · Mapas</h1>
+          <p class="mt-2 text-slate-300 max-w-3xl">Crie, edite e visualize chatbots com subopções infinitas. Navegue entre o construtor, a lista e o mapa mental para organizar tudo sem confusão.</p>
+        </div>
+        <nav class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl px-3 py-2 backdrop-blur">
+          {% set path = request.path %}
+          {% macro nav_link(label, endpoint, extra_prefix=None) -%}
+            {% set href = url_for(endpoint) %}
+            {% set is_active = path.startswith(href) or (extra_prefix and path.startswith(extra_prefix)) %}
+            {% set active = 'bg-aurora/20 border-aurora/40 text-aurora' if is_active else 'text-slate-200 border-transparent hover:border-aurora/30 hover:text-aurora' %}
+            <a href="{{ href }}" class="px-3 py-2 rounded-xl text-sm font-semibold border transition {{ active }}">{{ label }}</a>
+          {%- endmacro %}
+          {{ nav_link('Lista', 'main.list_chatbots') }}
+          {{ nav_link('Mapas Mentais', 'main.maps_view') }}
+          {{ nav_link('Criar/Editar', 'builder.chatbot_form', '/chatbot/') }}
+        </nav>
+      </div>
+    </header>
+
+    <section class="px-4 pb-12 max-w-6xl mx-auto">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="space-y-3 mb-6">
+            {% for category, message in messages %}
+              {% set style = 'bg-emerald-500/10 text-emerald-200 border border-emerald-500/40' if category == 'success' else 'bg-rose-500/10 text-rose-200 border border-rose-500/40' %}
+              <div class="px-4 py-3 rounded-xl {{ style }} shadow-lg shadow-black/20">
+                <p class="text-sm">{{ message }}</p>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </section>
+  </main>
+</body>
+</html>

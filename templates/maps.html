@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Chatbots - Mapas Mentais{% endblock %}
+
+{% macro render_mindmap(messages) %}
+  <div class="space-y-3">
+    {% for message in messages %}
+      <div class="mind-node relative pl-4">
+        <span class="absolute left-0 top-4 w-4 h-px bg-aurora/40"></span>
+        <div class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-gradient-to-r from-aurora/15 via-slate-900/60 to-peach/20 border border-aurora/30 text-sm text-slate-100 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-aurora/70"></span>
+          <span>{{ message.content|replace('\n','<br>')|safe }}</span>
+        </div>
+        {% if message.children %}
+          <div class="ml-5 mt-3 space-y-2 border-l border-dashed border-aurora/30 pl-4">
+            {{ render_mindmap(message.children) }}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% block content %}
+<div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+  <div>
+    <p class="text-sm text-aurora font-semibold uppercase tracking-[0.2em]">Visualização</p>
+    <h2 class="text-2xl font-display font-semibold">Mapas mentais dos chatbots</h2>
+    <p class="text-sm text-slate-300">Navegue pela árvore de mensagens e subopções em uma visão mais espaçada, ótima para estruturas grandes.</p>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="{{ url_for('main.list_chatbots') }}" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-aurora/40 hover:text-aurora transition text-sm font-semibold">Voltar à lista</a>
+    <a href="{{ url_for('builder.chatbot_form') }}" class="px-4 py-2 rounded-xl bg-gradient-to-r from-aurora to-peach text-slate-900 font-semibold shadow-lg shadow-peach/20 hover:shadow-peach/30 transition text-sm">Novo chatbot</a>
+  </div>
+</div>
+
+{% if not chatbots %}
+  <div class="bg-white/5 border border-white/10 rounded-2xl px-4 py-5 text-slate-300">Nenhum chatbot criado ainda. Crie um chatbot para visualizar aqui.</div>
+{% else %}
+  <div class="space-y-4">
+    {% for bot in chatbots %}
+      <article class="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3 shadow-lg shadow-black/20">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.25em] text-aurora font-semibold">Chatbot</p>
+            <h4 class="text-lg font-display font-semibold">{{ bot.name }}</h4>
+            <p class="text-xs text-slate-400">{{ bot.created_at.strftime("%d/%m/%Y %H:%M") if bot.created_at else "" }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="{{ url_for('export.export_map_pdf', bot_id=bot.id) }}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:border-aurora/40 hover:text-aurora transition">Exportar PDF</a>
+            <a href="{{ url_for('builder.edit_chatbot', bot_id=bot.id) }}" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-aurora/15 text-aurora border border-aurora/30 hover:bg-aurora/25 transition">Editar</a>
+          </div>
+        </div>
+        {% if bot.description %}
+          <p class="text-sm text-slate-300">{{ bot.description }}</p>
+        {% endif %}
+        {% if bot.root_messages %}
+          <div class="rounded-2xl border border-aurora/15 bg-slate-900/50 p-3 overflow-auto">
+            {{ render_mindmap(bot.root_messages) }}
+          </div>
+        {% else %}
+          <p class="text-sm text-slate-500">Nenhuma mensagem cadastrada.</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @page { margin: 24mm 16mm; }
+    body { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: #0f172a; }
+    h1 { font-size: 22px; margin: 0 0 4px 0; }
+    p.meta { margin: 0 0 12px 0; color: #475569; font-size: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #f8fafc; }
+    .mind { margin-top: 12px; }
+    .node { position: relative; padding-left: 12px; margin-bottom: 10px; }
+    .node::before { content: ""; position: absolute; left: 0; top: 10px; width: 8px; height: 1px; background: #22d3ee; }
+    .bubble { display: inline-block; padding: 6px 10px; border-radius: 12px; background: #e0f2fe; border: 1px solid #bae6fd; font-size: 12px; color: #0f172a; }
+    .children { margin-left: 14px; border-left: 1px dashed #cbd5e1; padding-left: 12px; }
+  </style>
+</head>
+<body>
+  {% macro render_mindmap(messages) -%}
+    <div class="mind">
+      {% for message in messages %}
+        <div class="node">
+          <span class="bubble">{{ message.content|replace('\n','<br>')|safe }}</span>
+          {% if message.children %}
+            <div class="children">
+              {{ render_mindmap(message.children) }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {%- endmacro %}
+
+  <div class="card">
+    <h1>Mapa mental · {{ chatbot.name }}</h1>
+    <p class="meta">Criado em {{ chatbot.created_at.strftime("%d/%m/%Y %H:%M") if chatbot.created_at else "" }}</p>
+    {% if chatbot.description %}
+      <p style="font-size: 13px; color:#334155;">{{ chatbot.description }}</p>
+    {% endif %}
+    {% if chatbot.root_messages %}
+      {{ render_mindmap(chatbot.root_messages) }}
+    {% else %}
+      <p style="font-size: 13px; color:#64748b;">Nenhuma mensagem cadastrada.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

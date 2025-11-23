@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Criador de Chatbots{% endblock %}
+
+{% block content %}
+<div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl shadow-2xl shadow-black/30 p-6 md:p-8 space-y-8">
+  <div class="flex items-center gap-4">
+    <div class="flex-1">
+      <p class="text-sm text-aurora font-semibold uppercase tracking-[0.2em]">{{ 'Editar chatbot' if edit_chatbot else 'Etapas' }}</p>
+      <h2 class="text-2xl font-display font-semibold">{{ 'Atualize o chatbot e suas mensagens' if edit_chatbot else 'Preencha os detalhes e as mensagens do seu bot' }}</h2>
+      {% if edit_chatbot %}
+        <p class="text-sm text-slate-300 mt-1">Você está editando <span class="font-semibold text-aurora">{{ edit_chatbot.name }}</span>. Salve para substituir a árvore de mensagens ou clique em outro chatbot para trocar.</p>
+      {% endif %}
+    </div>
+    <div class="hidden md:flex items-center gap-2 text-sm text-slate-300">
+      <span class="px-3 py-1 rounded-full bg-aurora/10 border border-aurora/30">1 · Identidade</span>
+      <span class="px-3 py-1 rounded-full bg-peach/10 border border-peach/30">2 · Mensagens</span>
+    </div>
+  </div>
+
+  <div class="relative h-2 bg-slate-800/80 rounded-full overflow-hidden">
+    <div id="progressBar" class="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-aurora to-peach transition-all duration-500"></div>
+  </div>
+
+  <form id="chatbotForm" method="POST" action="{{ form_action }}" class="space-y-6" novalidate>
+    <div class="space-y-6">
+      <div data-step="0" class="step">
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-slate-200 mb-2" for="name">Nome do chatbot *</label>
+            <input id="name" name="name" type="text" required value="{{ edit_chatbot.name if edit_chatbot else '' }}"
+                   class="w-full rounded-xl bg-slate-900/60 border border-slate-700/80 text-slate-100 px-4 py-3 focus:border-aurora focus:ring-2 focus:ring-aurora/40 transition"
+                   placeholder="Ex.: Bot de Onboarding">
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-slate-200 mb-2" for="description">Objetivo / resumo</label>
+            <textarea id="description" name="description" rows="3"
+                      class="w-full rounded-xl bg-slate-900/60 border border-slate-700/80 text-slate-100 px-4 py-3 focus:border-aurora focus:ring-2 focus:ring-aurora/40 transition"
+                      placeholder="Explique em poucas palavras o papel do bot.">{{ edit_chatbot.description if edit_chatbot else '' }}</textarea>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-slate-300">Dica</p>
+              <p class="text-sm text-slate-400">Use um nome curto e direto. Isso aparece nos relatórios e ajuda a organização.</p>
+            </div>
+            <div>
+              <p class="text-sm text-slate-300">Próximo passo</p>
+              <p class="text-sm text-slate-400">Clique em “Ir” para escrever as mensagens que o chatbot enviará.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-step="1" class="step hidden">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 class="text-lg font-display font-semibold text-slate-50">Mensagens e subopções</h3>
+            <p class="text-sm text-slate-400">Defina as mensagens principais e crie subopções (filhas) infinitamente. Ex.: “Digite 1 para fazer X” pode ter “Digite A para Y”, e assim por diante.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" id="collapseAll"
+                    class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 hover:border-aurora/30 hover:text-aurora transition">
+              <span class="text-base">↧</span>
+              <span class="font-semibold text-sm">Colapsar todas</span>
+            </button>
+            <button type="button" id="addRootMessage"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-aurora/15 text-aurora border border-aurora/40 hover:bg-aurora/25 transition">
+              <span class="text-lg font-bold">+</span>
+              <span class="font-semibold text-sm">Nova mensagem principal</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="messageTree" class="mt-4 space-y-3" data-initial-tree='{{ initial_tree | tojson }}'></div>
+        <input type="hidden" name="messages_tree" id="messagesTreeInput">
+
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-3 text-sm text-slate-300">
+          <p class="font-semibold text-slate-200 mb-1">Como organizar:</p>
+          <ul class="list-disc list-inside space-y-1 text-slate-400">
+            <li>Use “Nova mensagem principal” para criar um passo inicial.</li>
+            <li>Clique em “+ Subopção” dentro de uma mensagem para criar ramificações.</li>
+            <li>Use “Remover” para excluir o bloco atual (mantemos pelo menos uma raiz).</li>
+            <li>Colapse nós para ter uma visão mais limpa quando houver muitas subopções.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p id="stepError" class="hidden text-sm text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-3"></p>
+
+    <div class="flex items-center justify-between gap-4 pt-2">
+      <button type="button" id="prevStep"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-700/80 bg-slate-900/70 text-slate-100 hover:border-slate-500 hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        <span class="text-lg">←</span>
+        <span class="font-semibold">Voltar</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <button type="button" id="nextStep"
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-aurora to-peach text-slate-900 font-semibold shadow-lg shadow-peach/20 hover:shadow-peach/30 transition">
+          <span>Ir</span>
+          <span class="text-lg">→</span>
+        </button>
+        <button type="submit" id="submitForm"
+                class="hidden inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-aurora to-peach text-slate-900 font-semibold shadow-lg shadow-peach/20 hover:shadow-peach/30 transition">
+          <span>{{ 'Atualizar chatbot' if edit_chatbot else 'Salvar chatbot' }}</span>
+          <span class="text-lg">✓</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<script src="{{ url_for('static', filename='js/form.js') }}"></script>
+{% endblock %}
