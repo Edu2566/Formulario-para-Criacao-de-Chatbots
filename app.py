@@ -7,12 +7,27 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def build_database_uri():
+    """Retorna a URL do banco MySQL a partir das variáveis de ambiente."""
+    direct_uri = os.getenv("MYSQL_DATABASE_URL")
+    if direct_uri:
+        return direct_uri
+
+    user = os.getenv("MYSQL_USER", "chatbot")
+    password = os.getenv("MYSQL_PASSWORD", "chatbotpass")
+    host = os.getenv("MYSQL_HOST", "db")
+    port = os.getenv("MYSQL_PORT", "3306")
+    db_name = os.getenv("MYSQL_DB", "chatbots")
+    return f"mysql://{user}:{password}@{host}:{port}/{db_name}"
+
+
 def create_app():
     """Cria e configura a aplicação Flask, incluindo DB e blueprints."""
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("MYSQL_DATABASE_URL")
+    app.config["SQLALCHEMY_DATABASE_URI"] = build_database_uri()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
@@ -32,4 +47,8 @@ def create_app():
 
 if __name__ == "__main__":
     application = create_app()
-    application.run(debug=True)
+    application.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG") == "1",
+    )

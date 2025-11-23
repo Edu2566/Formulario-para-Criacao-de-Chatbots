@@ -1,23 +1,33 @@
 # Formulário de Chatbots (Flask + Banco de Dados)
 
-Aplicação Flask para criar e editar chatbots, registrar mensagens e subopções em árvore (profundidade ilimitada), com visualização escrita, “mapa mental” e exportação em PDF. Interface em três páginas (lista, mapas e construtor), navegação por setas e botões `+` para adicionar mensagens/subopções, colapso de nós para não poluir a tela e campos multiline (textarea) para as mensagens. Persistência em banco via SQLAlchemy.
+Aplicação Flask para criar e editar chatbots, registrar mensagens e subopções em árvore (profundidade ilimitada), com visualização escrita, “mapa mental” e exportação em PDF. Interface em três páginas (lista, mapas e construtor), navegação por setas e botões `+` para adicionar mensagens/subopções, colapso de nós para não poluir a tela e campos multiline (textarea) para as mensagens. Persistência em banco MySQL via SQLAlchemy.
 
-## Requisitos
+## Rodando com Docker (recomendado)
 
-- Python 3.10+
-- Virtualenv recomendado
+1. Duplique `.env.example` para `.env` e ajuste as variáveis conforme desejar (valores padrões são apenas para desenvolvimento).
+2. Suba os serviços:
+   ```bash
+   docker compose up --build
+   ```
+3. A aplicação estará em `http://localhost:5000` e o MySQL exposto na porta `3306` (se quiser conectar externamente).
 
-## Como rodar
+`docker-compose.yml` sobe dois serviços:
+- `app`: Flask + Gunicorn, aguardando o MySQL ficar disponível e criando as tabelas automaticamente.
+- `db`: MySQL 8.0 com volume persistente `db_data`.
+
+## Rodando localmente (sem Docker)
+
+Requisitos: Python 3.10+ e MySQL acessível.
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # ou .venv\Scripts\activate no Windows
 pip install -r requirements.txt
+# Ajuste as variáveis de ambiente (veja .env.example). Exemplo:
+export MYSQL_DATABASE_URL="mysql://chatbot:chatbotpass@localhost:3306/chatbots"
 python app.py  # roda em http://127.0.0.1:5000
 ```
 
-As tabelas são criadas automaticamente no arquivo `chatbots.db` na raiz do projeto.
-Se você já rodou a versão anterior (sem subopções), a aplicação tenta adicionar a coluna `parent_id` automaticamente; se preferir começar limpo, exclua o arquivo `instance/chatbots.db`.
 Para exportar PDF é usada a biblioteca WeasyPrint; pode ser necessário ter dependências de sistema (Cairo/ffi/Pango) instaladas no SO.
 
 ## Estrutura (MVT simples)
