@@ -1,6 +1,6 @@
 # Formulário de Chatbots (Flask + Banco de Dados)
 
-Aplicação Flask para criar e editar chatbots, registrar mensagens e subopções em árvore (profundidade ilimitada), com visualização escrita, “mapa mental” e exportação em PDF. Interface em três páginas (lista, mapas e construtor), navegação por setas e botões `+` para adicionar mensagens/subopções, colapso de nós para não poluir a tela e campos multiline (textarea) para as mensagens. Persistência em banco MySQL via SQLAlchemy.
+Aplicação Flask para planejar o fluxo de conversas na criação de chatbots, registrar mensagens e subopções em árvore (profundidade ilimitada), com visualização escrita, “mapa mental” e exportação em PDF. Interface em três páginas (lista, mapas e construtor), navegação por setas e botões `+` para adicionar mensagens/subopções, colapso de nós para não poluir a tela e campos multiline (textarea) para as mensagens. Persistência em banco MySQL via SQLAlchemy.
 
 ## Rodando com Docker (recomendado)
 
