@@ -15,9 +15,10 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-me}
       MYSQL_HOST: ${MYSQL_HOST:-db}
       MYSQL_PORT: ${MYSQL_PORT:-3306}
-    command: >
-      sh -c "/app/docker-entrypoint.sh
-      && gunicorn -b 0.0.0.0:5000 'app:create_app()'"
+    # Facilita apontar para serviços no host (ex.: MySQL local) de forma consistente em Linux e Windows
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["gunicorn", "-b", "0.0.0.0:5000", "app:create_app()"]
 
   db:
     image: mysql:8.0
